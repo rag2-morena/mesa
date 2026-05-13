@@ -661,20 +661,20 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--gris-suav
         <label>Operador asignado</label>
         <select id="f-operador">
           <option value="">— Sin asignar —</option>
-          <option value="OP01">OP01 · Ana Torres (N1)</option>
-          <option value="OP02">OP02 · Carlos Ruiz (N1)</option>
-          <option value="OP03">OP03 · María López (N1)</option>
-          <option value="OP04">OP04 · Pedro González (N1)</option>
-          <option value="OP05">OP05 · Sofía Hernández (N1)</option>
-          <option value="OP06">OP06 · Luis Martínez (N1)</option>
+          <option value="OP01">OP01 · CLAUDIA JANETH LOPEZ ZUNUN (N1)</option>
+          <option value="OP02">OP02 · SERGIO ANTONIO MOISES HERNANDEZ (N1)</option>
+          <option value="OP03">OP03 · MARTIN DANIEL CALLEJA MARTINEZ (N1)</option>
+          <option value="OP04">OP04 · ENRIQUE FARRERA AGUILAR (N1)</option>
+          <option value="OP05">OP05 · JONHATAN VIVANCO LARA (N1)</option>
+          <option value="OP06">OP06 · GABRIEL DE JESUS ORTIZ HERNANDEZ (N1)</option>
           <option value="OP07">OP07 · Diana Ramos (N1)</option>
           <option value="OP08">OP08 · Jorge Soto (N1)</option>
           <option value="OP09">OP09 · Valeria Cruz (N1)</option>
           <option value="OP10">OP10 · Alejandro Díaz (N1)</option>
-          <option value="OP11">OP11 · Ing. Ramírez (N2 Knox)</option>
-          <option value="OP12">OP12 · Ing. Vargas (N2 Knox)</option>
-          <option value="OP13">OP13 · Arq. Morales (N3)</option>
-          <option value="OP14">OP14 · Arq. Fuentes (N3)</option>
+          <option value="OP11">OP11 · LUIS ALBERTO GARCIA ORTIZ (N2 Knox)</option>
+          <option value="OP12">OP12 · MELISSA ARROYO (N2 Knox)</option>
+          <option value="OP13">OP13 · CARLOS CALDERON (N3)</option>
+          <option value="OP14">OP14 · RICKARDO GONZALEZ (N3)</option>
           <option value="OP15">OP15 · Dr. Jiménez (N3)</option>
         </select>
       </div>
@@ -700,20 +700,20 @@ html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--gris-suav
         </select></div>
       <div class="form-group"><label>Operador asignado</label>
         <select id="accion-operador">
-          <option value="OP01">OP01 · Ana Torres (N1)</option>
-          <option value="OP02">OP02 · Carlos Ruiz (N1)</option>
-          <option value="OP03">OP03 · María López (N1)</option>
-          <option value="OP04">OP04 · Pedro González (N1)</option>
-          <option value="OP05">OP05 · Sofía Hernández (N1)</option>
-          <option value="OP06">OP06 · Luis Martínez (N1)</option>
+          <option value="OP01">OP01 · CLAUDIA LOPEZ ZUNUN (N1)</option>
+          <option value="OP02">OP02 · SERGIO MOISES HDZ (N1)</option>
+          <option value="OP03">OP03 · MARTIN CALLEJA MARTINEZ (N1)</option>
+          <option value="OP04">OP04 · ENRIQUE FARRERA AGUILAR (N1)</option>
+          <option value="OP05">OP05 · JONHATAN VIVANCO LARA (N1)</option>
+          <option value="OP06">OP06 · GABRIEL ORTIZ HDZ (N1)</option>
           <option value="OP07">OP07 · Diana Ramos (N1)</option>
           <option value="OP08">OP08 · Jorge Soto (N1)</option>
           <option value="OP09">OP09 · Valeria Cruz (N1)</option>
           <option value="OP10">OP10 · Alejandro Díaz (N1)</option>
-          <option value="OP11">OP11 · Ing. Ramírez (N2)</option>
-          <option value="OP12">OP12 · Ing. Vargas (N2)</option>
-          <option value="OP13">OP13 · Arq. Morales (N3)</option>
-          <option value="OP14">OP14 · Arq. Fuentes (N3)</option>
+          <option value="OP11">OP11 · LUIS ALBERTO GARCIA ORTIZ (N2)</option>
+          <option value="OP12">OP12 · MELISSA ARROYO (N2)</option>
+          <option value="OP13">OP13 · CARLOS CALDERON (N3)</option>
+          <option value="OP14">OP14 · RICKARDO GONZALEZ (N3)</option>
           <option value="OP15">OP15 · Dr. Jiménez (N3)</option>
         </select></div>
       <div class="form-group"><label>Nota / Motivo</label>
@@ -1178,7 +1178,7 @@ function renderDashboard(){
       <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>MTTR N2</span><strong>7.8 hrs</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>FCR N1</span><strong>87%</strong></div>
     </div>`;
-  const ops=['OP01·Ana T.','OP02·Carlos R.','OP03·María L.','OP04·Pedro G.','OP05·Sofía H.','OP06·Luis M.','OP07·Diana R.','OP08·Jorge S.','OP09·Valeria C.','OP10·Alex D.'];
+  const ops=['OP01·Claudia L.','OP02·Sergio M.','OP03·Martín C.','OP04·Enrique F.','OP05·Jonhatan F.','OP06·Gabriel O.','OP07·Diana R.','OP08·Jorge S.','OP09·Valeria C.','OP10·Alex D.'];
   document.getElementById('dash-ops').innerHTML=ops.map((o,i)=>{
     const cnt=TICKETS.filter(t=>t.operador==='OP'+String(i+1).padStart(2,'0')).length;
     return `<div style="text-align:center;min-width:80px;">
