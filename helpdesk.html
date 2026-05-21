@@ -79,7 +79,6 @@ window.doLogin = async function(){
 };
 window.doLogout = async function(){
   if(unsubTickets){ unsubTickets(); unsubTickets = null; }
-  if(unsubPub){ unsubPub(); unsubPub = null; }
   await signOut(auth);
 };
 
@@ -106,7 +105,6 @@ onAuthStateChanged(auth, async (fireUser) => {
     TICKETS = [];
     ticketSel = null;
     if(unsubTickets){ unsubTickets(); unsubTickets = null; }
-  if(unsubPub){ unsubPub(); unsubPub = null; }
     document.getElementById("app-shell").style.display = "none";
     document.getElementById("login-screen").style.display = "flex";
     document.getElementById("btn-login").textContent = "Iniciar Sesión";
@@ -151,23 +149,6 @@ function iniciarApp(){
 // ──────────────────────────────────────────────────────────
 // FIRESTORE — suscripción en tiempo real
 // ──────────────────────────────────────────────────────────
-function suscribirPublicos(){
-  if(!esSuperior()) return;
-  if(unsubPub){ unsubPub(); }
-  const q = query(collection(db,'tickets_publicos'), orderBy('creado','desc'));
-  unsubPub = onSnapshot(q, (snap)=>{
-    TICKETS_PUB = snap.docs.map(d=>({
-      id:d.id, ...d.data(),
-      creado: d.data().creado instanceof Timestamp ? d.data().creado.toDate() : new Date()
-    }));
-    // Actualizar badge en sidebar
-    const badge = document.getElementById('nc-pub');
-    if(badge) badge.textContent = TICKETS_PUB.filter(t=>t.estatus==='ABIERTO').length;
-    // Si está en vista chatbox refrescar
-    if(vistaActual==='chatbox') renderTicketsPub();
-  }, err=>{ console.error('tickets_publicos error:',err); });
-}
-
 function suscribirTickets(){
   if(unsubTickets){ unsubTickets(); }
   let q;
@@ -729,103 +710,6 @@ window.sv = function(v){
 // ──────────────────────────────────────────────────────────
 // EXPORTAR CSV
 // ──────────────────────────────────────────────────────────
-// ── Render tickets públicos ──────────────────────────────
-window.renderTicketsPub = function(){
-  const cont = document.getElementById('pub-list');
-  if(!cont) return;
-  if(!TICKETS_PUB.length){
-    cont.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gris-t);font-size:13px;">Sin tickets públicos pendientes</div>';
-    return;
-  }
-  cont.innerHTML = TICKETS_PUB.map(t=>{
-    const fecha = t.creado instanceof Date
-      ? t.creado.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '–';
-    const est = t.estatus==='ABIERTO'
-      ? '<span class="badge b-o">🟠 ABIERTO</span>'
-      : '<span class="badge b-g">✅ APROBADO</span>';
-    return `<div class="dc" style="margin:0;">
-      <div class="dc-h" style="justify-content:space-between;">
-        <h4>💬 #${t.id.slice(-8).toUpperCase()}</h4>
-        <div style="display:flex;gap:5px;align-items:center;">${est}
-          <span class="badge b-n" style="font-size:8px;">${fecha}</span>
-        </div>
-      </div>
-      <div class="dc-b" style="display:flex;flex-direction:column;gap:6px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
-          <div><span style="color:var(--gris-t);font-size:9px;text-transform:uppercase;">Nombre</span><br/><strong>${t.nombre||'–'}</strong></div>
-          <div><span style="color:var(--gris-t);font-size:9px;text-transform:uppercase;">Teléfono</span><br/><strong>${t.telefono||'–'}</strong></div>
-          <div><span style="color:var(--gris-t);font-size:9px;text-transform:uppercase;">CURP</span><br/>${t.curp||'No proporcionada'}</div>
-          <div><span style="color:var(--gris-t);font-size:9px;text-transform:uppercase;">Estado</span><br/>${t.estado||'–'}</div>
-          <div><span style="color:var(--gris-t);font-size:9px;text-transform:uppercase;">Fila</span><br/>${t.fila||'–'}</div>
-          <div><span style="color:var(--gris-t);font-size:9px;text-transform:uppercase;">Clasificación</span><br/>${t.clasificacion||'–'}</div>
-        </div>
-        <div style="background:var(--gris);border-left:3px solid var(--vino);border-radius:5px;padding:7px 10px;font-size:11px;color:#333;">${t.obs||'–'}</div>
-        <div style="display:flex;gap:6px;align-items:center;margin-top:2px;">
-          <span style="font-size:10px;color:var(--gris-t);">Asignado a: <strong>${t.agente||'–'}</strong></span>
-          ${t.estatus==='ABIERTO' && puedeGestionar() ? `
-          <button class="btn btn-p" style="margin-left:auto;font-size:10px;padding:4px 10px;"
-            onclick="aprobarTicket('${t.id}','${t.agente||''}','${t.agenteUid||''}')">
-            ✓ Aprobar y mover a Mesa
-          </button>
-          <button class="btn btn-s" style="font-size:10px;padding:4px 10px;color:var(--rojo);border-color:var(--rojo);"
-            onclick="rechazarTicket('${t.id}')">
-            ✕ Rechazar
-          </button>` : ''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-};
-
-window.aprobarTicket = async function(pubId, agente, agenteUid){
-  try{
-    // Obtener ticket público
-    const pubSnap = await getDocs(query(collection(db,'tickets_publicos'),where('__name__','==',pubId)));
-    if(pubSnap.empty){ toast('Ticket no encontrado','r'); return; }
-    const data = pubSnap.docs[0].data();
-    // Crear en colección tickets
-    const nuevoRef = await addDoc(collection(db,'tickets'),{
-      contacto:   data.telefono || null,
-      conteo:     1,
-      perfil:     data.perfil || 'CIUDADANO',
-      curp:       data.curp || null,
-      estado:     data.estado || null,
-      distrito:   null,
-      agente:     agente,
-      agenteUid:  agenteUid,
-      agentNombre:agente,
-      fila:       data.fila || 'OTROS',
-      clasificacion: data.clasificacion || 'ATENCION',
-      opinion:    null,
-      obs:        data.obs || null,
-      estatus:    'ABIERTO',
-      tenant:     null,
-      origen:     'CHATBOX_PUBLICO',
-      nombre:     data.nombre || null,
-      creado:     serverTimestamp(),
-      creadoPor:  data.nombre || 'Chatbox público',
-    });
-    // Historial
-    await addDoc(collection(db,'tickets',nuevoRef.id,'historial'),{
-      accion:'Ticket aprobado desde Chatbox Público',
-      tipo:'g', op: usuario?.nombre||'Supervisor',
-      nota:'Folio original chatbox: '+pubId.slice(-8).toUpperCase(),
-      ts: serverTimestamp()
-    });
-    // Marcar ticket público como aprobado
-    await updateDoc(doc(db,'tickets_publicos',pubId),{ estatus:'APROBADO', aprobadoPor: usuario?.nombre });
-    toast('Ticket aprobado y movido a la Mesa ✓','g');
-  } catch(e){ toast('Error: '+e.message,'r'); }
-};
-
-window.rechazarTicket = async function(pubId){
-  if(!confirm('¿Rechazar este ticket del chatbox? Se marcará como cerrado y no pasará a la mesa.')) return;
-  try{
-    await updateDoc(doc(db,'tickets_publicos',pubId),{ estatus:'CERRADO', rechazadoPor: usuario?.nombre });
-    toast('Ticket rechazado','g');
-  } catch(e){ toast('Error: '+e.message,'r'); }
-};
-
 window.exportCSV = function(){
   const cols=["ID","CONTACTO","CONTEO","PERFIL","CURP","ESTADO","DISTRITO",
     "AGENTE","FILA DE ATENCION","CLASIFICACION","OPINION MESA","OBSERVACIONES","FECHA","ESTATUS"];
@@ -1131,7 +1015,6 @@ html,body{height:100%;font-family:"Barlow",sans-serif;background:var(--gris);ove
     <div class="nav-sec">Principal</div>
     <div class="nav-item active" onclick="sv('tickets')" id="nav-tickets"><span class="ico">🎫</span>Tickets<span class="nav-cnt warn" id="nc-t">0</span></div>
     <div class="nav-item" onclick="sv('knox')" id="nav-knox"><span class="ico">📱</span>Dispositivos Knox</div>
-    <div class="nav-item" id="nav-chatbox" onclick="sv('chatbox')" style="display:none;"><span class="ico">💬</span>Chatbox Público<span class="nav-cnt warn" id="nc-pub">0</span></div>
     <div class="nav-item" id="nav-panel" onclick="sv('panel')" style="display:none;"><span class="ico">📊</span>Panel Ejecutivo</div>
     <div class="nav-sec">Filas de Atención</div>
     <div class="nav-item" onclick="fFila('SISTEMA')"><span class="ico">⚙️</span>Sistema<span class="nav-cnt" id="nc-sis">0</span></div>
@@ -1209,15 +1092,6 @@ html,body{height:100%;font-family:"Barlow",sans-serif;background:var(--gris);ove
             <p>Haz clic en cualquier ticket para ver su detalle, historial y acciones.</p>
           </div>
         </div>
-      </div>
-
-      <!-- CHATBOX PÚBLICO -->
-      <div id="view-chatbox" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-        <div style="background:#fff;border-bottom:1px solid var(--gris-b);padding:8px 16px;display:flex;gap:8px;align-items:center;flex-shrink:0;">
-          <span style="font-size:13px;font-weight:700;color:var(--vino);font-family:'Barlow Condensed',sans-serif;">💬 Tickets Chatbox Público — Pendientes de revisión</span>
-          <span class="badge b-y" style="margin-left:auto;">⚠️ Requieren aprobación antes de pasar a la mesa</span>
-        </div>
-        <div id="pub-list" style="flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;background:var(--gris);"></div>
       </div>
 
       <!-- KNOX -->
